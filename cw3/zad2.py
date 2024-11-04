@@ -1,6 +1,7 @@
 from datetime import date
 from typing import List
 
+
 class Library:
     def __init__(self, city, street, zip_code, open_hours, phone):
         self.city = city
@@ -16,6 +17,7 @@ class Library:
                 f"  Zip Code: {self.zip_code}\n"
                 f"  Open Hours: {self.open_hours}\n"
                 f"  Phone: {self.phone}")
+
 
 class Employee:
     def __init__(self, first_name, last_name, hire_date, birth_date, city, street, zip_code, phone):
@@ -36,6 +38,7 @@ class Employee:
                 f"  Address: {self.city}, {self.street}, {self.zip_code}\n"
                 f"  Phone: {self.phone}")
 
+
 class Book:
     def __init__(self, library, publication_date, author_name, author_surname, number_of_pages):
         self.library = library
@@ -51,6 +54,7 @@ class Book:
                 f"  Pages: {self.number_of_pages}\n"
                 f"  {self.library}")
 
+
 class Order:
     def __init__(self, employee, student, books: List[Book], order_date):
         self.employee = employee
@@ -65,6 +69,7 @@ class Order:
                 f"  Student: {self.student}\n"
                 f"  Order Date: {self.order_date}\n"
                 f"  Books:\n{books_info}")
+
 
 library1 = Library("Warsaw", "Main St 1", "00-001", "8:00 - 18:00", "123456789")
 library2 = Library("Krakow", "Market St 5", "30-002", "9:00 - 19:00", "987654321")
