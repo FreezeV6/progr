@@ -1,4 +1,5 @@
-from cw3 import Property
+from cw3.zad3.Property.Property import Property
+
 
 class Flat(Property):
     def __init__(self, area, rooms, price, address, floor):

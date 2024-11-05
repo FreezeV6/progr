@@ -1,5 +1,6 @@
 import requests
 
+
 class Brewery:
     def __init__(self, id: int, name: str, brewery_type: str, street: str, city: str, state: str, country: str,
                  phone: str, website_url: str):
