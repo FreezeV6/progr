@@ -1,28 +1,35 @@
-import csv
-import uuid
+import sqlite3
 from datetime import datetime
+import uuid
 
+DB_FILE = 'tasks.db'
 
-def add_task(file_name='tasks.csv'):
+def initialize_db():
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tasks (
+                id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+
+def add_task():
     task_id = str(uuid.uuid4())
-    task = {
-        "id": task_id,
-        "status": "pending",
-        "timestamp": datetime.now().isoformat()
-    }
+    timestamp = datetime.now().isoformat()
+    status = "pending"
 
-    try:
-        with open(file_name, 'x', newline='') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=task.keys())
-            writer.writeheader()
-    except FileExistsError:
-        pass
-
-    with open(file_name, 'a', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=task.keys())
-        writer.writerow(task)
-    print(f"Added task: {task_id}")
-
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO tasks (id, status, timestamp)
+            VALUES (?, ?, ?)
+        ''', (task_id, status, timestamp))
+        conn.commit()
+        print(f"Added task: {task_id}")
 
 if __name__ == "__main__":
+    initialize_db()
     add_task()

@@ -1,74 +1,58 @@
-import csv
+import sqlite3
 import time
-import os
+from datetime import datetime
 
+DB_FILE = 'tasks.db'
 
-def consume_tasks(file_name='tasks.csv', lock_file='tasks.lock'):
+def initialize_db():
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tasks (
+                id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+
+def consume_tasks():
     while True:
-        if not os.path.exists(file_name):
-            print("No tasks file found. Waiting...")
-            time.sleep(5)
-            continue
+        with sqlite3.connect(DB_FILE) as conn:
+            cursor = conn.cursor()
 
-        tasks = []
-        pending_tasks = []
+            cursor.execute('''
+                SELECT id, timestamp FROM tasks
+                WHERE status = "pending"
+                ORDER BY timestamp ASC
+                LIMIT 1
+            ''')
+            task = cursor.fetchone()
 
-        if os.path.exists(lock_file):
-            print("File is locked by another process. Retrying...")
-            time.sleep(2)
-            continue
-        try:
-            open(lock_file, 'w').close()
+            if task:
+                task_id, timestamp = task
+                print(f"Consuming task {task_id}")
 
-            with open(file_name, 'r', newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    tasks.append(row)
-                    if row["status"] == "pending":
-                        pending_tasks.append(row)
-        finally:
-            if os.path.exists(lock_file):
-                os.remove(lock_file)
+                cursor.execute('''
+                    UPDATE tasks
+                    SET status = "in_progress"
+                    WHERE id = ?
+                ''', (task_id,))
+                conn.commit()
 
-        if pending_tasks:
-            task_to_process = pending_tasks[0]
-            print(f"Consuming task {task_to_process['id']}")
+                time.sleep(30)
 
-            for task in tasks:
-                if task["id"] == task_to_process["id"]:
-                    task["status"] = "in_progress"
-
-            try:
-                open(lock_file, 'w').close()
-                with open(file_name, 'w', newline='') as csvfile:
-                    writer = csv.DictWriter(csvfile, fieldnames=tasks[0].keys())
-                    writer.writeheader()
-                    writer.writerows(tasks)
-            finally:
-                if os.path.exists(lock_file):
-                    os.remove(lock_file)
-
-            time.sleep(30)
-
-            for task in tasks:
-                if task["id"] == task_to_process["id"]:
-                    task["status"] = "done"
-
-            try:
-                open(lock_file, 'w').close()
-                with open(file_name, 'w', newline='') as csvfile:
-                    writer = csv.DictWriter(csvfile, fieldnames=tasks[0].keys())
-                    writer.writeheader()
-                    writer.writerows(tasks)
-            finally:
-                if os.path.exists(lock_file):
-                    os.remove(lock_file)
-
-            print(f"Task {task_to_process['id']} is done.")
-        else:
-            print("No pending tasks. Waiting...")
-            time.sleep(5)
-
+                cursor.execute('''
+                    UPDATE tasks
+                    SET status = "done"
+                    WHERE id = ?
+                ''', (task_id,))
+                conn.commit()
+                print(f"Task {task_id} is done.")
+            else:
+                print("No pending tasks. Waiting...")
+                time.sleep(5)
 
 if __name__ == "__main__":
+    initialize_db()
     consume_tasks()
