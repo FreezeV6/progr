@@ -1,8 +1,9 @@
 import os
 from cw8.read_img import read_img
 
+
 base_dir = os.path.dirname(__file__)
-img_path = [
+img_paths = [
     os.path.join(base_dir, 'images/img1.jpeg'),
     os.path.join(base_dir, 'images/img2.jpeg'),
     os.path.join(base_dir, 'images/img3.jpeg'),
@@ -10,9 +11,11 @@ img_path = [
     os.path.join(base_dir, 'images/img5.jpeg')
 ]
 
-for path in img_path:
+for img_path in img_paths:
     try:
-        txt = read_img(path)
-        print(f'Tekst z {path}:\n{txt}\n')
+        results = read_img(img_path)
+        print(f"Obraz: {img_path}")
+        for method, text in results.items():
+            print(f"\nMetoda: {method}\nOCR Tekst:\n{text}\n")
     except FileNotFoundError as e:
         print(e)
