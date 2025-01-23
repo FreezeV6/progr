@@ -2,13 +2,15 @@ import requests
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from celery import Celery
-from pandas.core.dtypes.common import classes
+import multiprocessing
+import os
 from ultralytics import YOLO
 import redis
 import uuid
 import cv2
 import numpy as np
 
+multiprocessing.set_start_method('spawn')
 app = FastAPI()
 
 # Configure Redis and Celery
@@ -44,10 +46,13 @@ def process_image_task(image_data):
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     count, processed_image = detect_persons(image)
     filename = f"output_{uuid.uuid4().hex}.jpg"
-    cv2.imwrite(filename, processed_image)
+    # cv2.imwrite(filename, processed_image)
 
     result = f'Task ID: {process_image_task.request.id}, Count: {count}, Processed Image: {filename}\n'
-    with open('results.txt', "a") as file:
+    results_path = os.path.join(os.getcwd(), 'output', 'results.txt')
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
+
+    with open(results_path, "a") as file:
         file.write(result)
 
     return {'count': count, 'output_file': filename}
