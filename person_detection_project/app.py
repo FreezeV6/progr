@@ -10,7 +10,6 @@ import uuid
 import cv2
 import numpy as np
 
-multiprocessing.set_start_method('spawn')
 app = FastAPI()
 
 # Configure Redis and Celery
